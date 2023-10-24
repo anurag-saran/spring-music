@@ -1,132 +1,73 @@
-Spring Music
-============
+# quarkus-music-app
 
-This is a sample application for using database services on [Cloud Foundry](http://cloudfoundry.org) with the [Spring Framework](http://spring.io) and [Spring Boot](http://projects.spring.io/spring-boot/).
+This project uses Quarkus, the Supersonic Subatomic Java Framework.
 
-This application has been built to store the same domain objects in one of a variety of different persistence technologies - relational, document, and key-value stores. This is not meant to represent a realistic use case for these technologies, since you would typically choose the one most applicable to the type of data you need to store, but it is useful for testing and experimenting with different types of services on Cloud Foundry.
+If you want to learn more about Quarkus, please visit its website: https://quarkus.io/ .
 
-The application use Spring Java configuration and [bean profiles](http://docs.spring.io/spring-boot/docs/current/reference/html/boot-features-profiles.html) to configure the application and the connection objects needed to use the persistence stores. It also uses the [Java CFEnv](https://github.com/pivotal-cf/java-cfenv/) library to inspect the environment when running on Cloud Foundry. See the [Cloud Foundry documentation](http://docs.cloudfoundry.org/buildpacks/java/spring-service-bindings.html) for details on configuring a Spring application for Cloud Foundry.
+## Running the application in dev mode
 
-## Building
+You can run your application in dev mode that enables live coding using:
+```shell script
+./gradlew quarkusDev
+```
 
-This project requires Java version 17 or later to compile.
+> **_NOTE:_**  Quarkus now ships with a Dev UI, which is available in dev mode only at http://localhost:8080/q/dev/.
 
-> [!NOTE]
-> If you need to use an earlier Java version, check out the [`spring-boot-2` branch](https://github.com/cloudfoundry-samples/spring-music/tree/spring-boot-2), which can be built with Java 8 and later.  
+## Packaging and running the application
 
-To build a runnable Spring Boot jar file, run the following command:
+The application can be packaged using:
+```shell script
+./gradlew build
+```
+It produces the `quarkus-run.jar` file in the `build/quarkus-app/` directory.
+Be aware that it’s not an _über-jar_ as the dependencies are copied into the `build/quarkus-app/lib/` directory.
 
-~~~
-$ ./gradlew clean assemble
-~~~
+The application is now runnable using `java -jar build/quarkus-app/quarkus-run.jar`.
 
-## Running the application locally
+If you want to build an _über-jar_, execute the following command:
+```shell script
+./gradlew build -Dquarkus.package.type=uber-jar
+```
 
-One Spring bean profile should be activated to choose the database provider that the application should use. The profile is selected by setting the system property `spring.profiles.active` when starting the app.
+The application, packaged as an _über-jar_, is now runnable using `java -jar build/*-runner.jar`.
 
-The application can be started locally using the following command:
+## Creating a native executable
 
-~~~
-$ java -jar -Dspring.profiles.active=<profile> build/libs/spring-music-1.0.jar
-~~~
+You can create a native executable using: 
+```shell script
+./gradlew build -Dquarkus.package.type=native
+```
 
-where `<profile>` is one of the following values:
+Or, if you don't have GraalVM installed, you can run the native executable build in a container using: 
+```shell script
+./gradlew build -Dquarkus.package.type=native -Dquarkus.native.container-build=true
+```
 
-* `mysql`
-* `postgres`
-* `mongodb`
-* `redis`
+You can then execute your native executable with: `./build/quarkus-music-app-1.0.0-SNAPSHOT-runner`
 
-If no profile is provided, an in-memory relational database will be used. If any other profile is provided, the appropriate database server must be started separately. Spring Boot will auto-configure a connection to the database using it's auto-configuration defaults. The connection parameters can be configured by setting the appropriate [Spring Boot properties](http://docs.spring.io/spring-boot/docs/current/reference/html/common-application-properties.html).
+If you want to learn more about building native executables, please consult https://quarkus.io/guides/gradle-tooling.
 
-If more than one of these profiles is provided, the application will throw an exception and fail to start.
+## Related Guides
 
-## Running the application on Cloud Foundry
+- Hibernate ORM ([guide](https://quarkus.io/guides/hibernate-orm)): Define your persistent model with Hibernate ORM and Jakarta Persistence
+- Hibernate Validator ([guide](https://quarkus.io/guides/validation)): Validate object properties (field, getter) and method parameters for your beans (REST, CDI, Jakarta Persistence)
+- Hibernate ORM with Panache ([guide](https://quarkus.io/guides/hibernate-orm-panache)): Simplify your persistence code for Hibernate ORM via the active record or the repository pattern
+- RESTEasy Classic ([guide](https://quarkus.io/guides/resteasy)): REST endpoint framework implementing Jakarta REST and more
+- JDBC Driver - PostgreSQL ([guide](https://quarkus.io/guides/datasource)): Connect to the PostgreSQL database via JDBC
 
-When running on Cloud Foundry, the application will detect the type of database service bound to the application (if any). If a service of one of the supported types (MySQL, Postgres, Oracle, MongoDB, or Redis) is bound to the app, the appropriate Spring profile will be configured to use the database service. The connection strings and credentials needed to use the service will be extracted from the Cloud Foundry environment.
+## Provided Code
 
-If no bound services are found containing any of these values in the name, an in-memory relational database will be used.
+### Hibernate ORM
 
-If more than one service containing any of these values is bound to the application, the application will throw an exception and fail to start.
+Create your first JPA entity
 
-After installing the 'cf' [command-line interface for Cloud Foundry](http://docs.cloudfoundry.org/cf-cli/), targeting a Cloud Foundry instance, and logging in, the application can be built and pushed using these commands:
+[Related guide section...](https://quarkus.io/guides/hibernate-orm)
 
-~~~
-$ cf push
-~~~
-
-The application will be pushed using settings in the provided `manifest.yml` file. The output from the command will show the URL that has been assigned to the application.
-
-### Creating and binding services
-
-Using the provided manifest, the application will be created without an external database (in the `in-memory` profile). You can create and bind database services to the application using the information below.
-
-#### System-managed services
-
-Depending on the Cloud Foundry service provider, persistence services might be offered and managed by the platform. These steps can be used to create and bind a service that is managed by the platform:
-
-~~~
-# view the services available
-$ cf marketplace
-# create a service instance
-$ cf create-service <service> <service plan> <service name>
-# bind the service instance to the application
-$ cf bind-service <app name> <service name>
-# restart the application so the new service is detected
-$ cf restart
-~~~
-
-#### User-provided services
-
-Cloud Foundry also allows service connection information and credentials to be provided by a user. In order for the application to detect and connect to a user-provided service, a single `uri` field should be given in the credentials using the form `<dbtype>://<username>:<password>@<hostname>:<port>/<databasename>`.
-
-These steps use examples for username, password, host name, and database name that should be replaced with real values.
-
-~~~
-# create a user-provided Oracle database service instance
-$ cf create-user-provided-service oracle-db -p '{"uri":"oracle://root:secret@dbserver.example.com:1521/mydatabase"}'
-# create a user-provided MySQL database service instance
-$ cf create-user-provided-service mysql-db -p '{"uri":"mysql://root:secret@dbserver.example.com:3306/mydatabase"}'
-# bind a service instance to the application
-$ cf bind-service <app name> <service name>
-# restart the application so the new service is detected
-$ cf restart
-~~~
-
-#### Changing bound services
-
-To test the application with different services, you can simply stop the app, unbind a service, bind a different database service, and start the app:
-
-~~~
-$ cf unbind-service <app name> <service name>
-$ cf bind-service <app name> <service name>
-$ cf restart
-~~~
-
-#### Database drivers
-
-Database drivers for MySQL, Postgres, Microsoft SQL Server, MongoDB, and Redis are included in the project.
-
-To connect to an Oracle database, you will need to download the appropriate driver (e.g. from http://www.oracle.com/technetwork/database/features/jdbc/index-091264.html). Then make a `libs` directory in the `spring-music` project, and move the driver, `ojdbc7.jar` or `ojdbc8.jar`, into the `libs` directory.
-In `build.gradle`, uncomment the line `compile files('libs/ojdbc8.jar')` or `compile files('libs/ojdbc7.jar')` and run `./gradle assemble`.
+[Related Hibernate with Panache section...](https://quarkus.io/guides/hibernate-orm-panache)
 
 
-## Alternate Java versions
+### RESTEasy JAX-RS
 
-By default, the application will be built and deployed using Java 17 compatibility.
-If you want to use a more recent version of Java, you will need to update two things.
+Easily start your RESTful Web Services
 
-In `build.gradle`, change the `targetCompatibility` Java version from `JavaVersion.VERSION_17` to a different value from `JavaVersion`:
-
-~~~
-java {
-  ...
-  targetCompatibility = JavaVersion.VERSION_17
-}
-~~~
-
-In `manifest.yml`, change the Java buildpack JRE version from `version: 17.+` to a different value:
-
-~~~
-    JBP_CONFIG_OPEN_JDK_JRE: '{ jre: { version: 17.+ } }'
-~~~
+[Related guide section...](https://quarkus.io/guides/getting-started#the-jax-rs-resources)
