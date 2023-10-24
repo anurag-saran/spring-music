@@ -1,5 +1,8 @@
 package org.cloudfoundry.samples.music.config;
 
+// Not needed in Quarkus
+
+/*
 import io.pivotal.cfenv.core.CfEnv;
 import io.pivotal.cfenv.core.CfService;
 import org.apache.commons.logging.Log;
@@ -142,3 +145,5 @@ public class SpringApplicationContextInitializer implements ApplicationContextIn
         ));
     }
 }
+
+ */

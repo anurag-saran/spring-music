@@ -1,11 +1,10 @@
 package org.cloudfoundry.samples.music.repositories.jpa;
 
+import io.quarkus.hibernate.orm.panache.PanacheRepositoryBase;
+import jakarta.enterprise.context.ApplicationScoped;
 import org.cloudfoundry.samples.music.domain.Album;
-import org.springframework.context.annotation.Profile;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
 
-@Repository
-@Profile({"!mongodb", "!redis"})
-public interface JpaAlbumRepository extends JpaRepository<Album, String> {
+@ApplicationScoped
+public class JpaAlbumRepository implements PanacheRepositoryBase<Album,String> {
+
 }

@@ -1,5 +1,9 @@
 package org.cloudfoundry.samples.music.repositories.redis;
 
+// Hasn't been implemented
+
+
+/*
 import org.cloudfoundry.samples.music.domain.Album;
 import org.cloudfoundry.samples.music.domain.RandomIdGenerator;
 
@@ -115,3 +119,5 @@ public class RedisAlbumRepository implements CrudRepository<Album, String> {
         return list;
     }
 }
+
+ */

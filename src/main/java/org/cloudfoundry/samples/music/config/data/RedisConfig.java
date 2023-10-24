@@ -1,5 +1,8 @@
 package org.cloudfoundry.samples.music.config.data;
 
+// Hasn't been implemented
+
+/*
 import org.cloudfoundry.samples.music.domain.Album;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -32,3 +35,5 @@ public class RedisConfig {
     }
 
 }
+
+ */

@@ -2,58 +2,53 @@ package org.cloudfoundry.samples.music.repositories;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.Priority;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Alternative;
+import jakarta.transaction.Transactional;
 import org.cloudfoundry.samples.music.domain.Album;
-import org.springframework.beans.factory.BeanFactoryUtils;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.context.ApplicationListener;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
-import org.springframework.data.repository.CrudRepository;
-import org.springframework.data.repository.init.Jackson2ResourceReader;
+import org.cloudfoundry.samples.music.repositories.jpa.JpaAlbumRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.util.Collection;
+import java.io.InputStream;
+import java.util.Objects;
 
-public class AlbumRepositoryPopulator implements ApplicationListener<ApplicationReadyEvent> {
-    private final Jackson2ResourceReader resourceReader;
-    private final Resource sourceData;
+@Priority(1)
+@Alternative
+@ApplicationScoped
+public class AlbumRepositoryPopulator extends JpaAlbumRepository {
 
-    public AlbumRepositoryPopulator() {
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        resourceReader = new Jackson2ResourceReader(mapper);
-        sourceData = new ClassPathResource("albums.json");
+    private static final Logger logger = LoggerFactory.getLogger(AlbumRepositoryPopulator.class);
+
+    @PostConstruct
+    public void populateAlbumsJson() {
+        populateAlbums();
     }
 
-    @Override
-    public void onApplicationEvent(ApplicationReadyEvent event) {
-        CrudRepository albumRepository =
-                BeanFactoryUtils.beanOfTypeIncludingAncestors(event.getApplicationContext(), CrudRepository.class);
+    @Transactional
+    public void populateAlbums() {
+        try {
+            ClassLoader classLoader = getClass().getClassLoader();
+            InputStream inputStream = classLoader.getResourceAsStream("albums.json");
 
-        if (albumRepository != null && albumRepository.count() == 0) {
-            populate(albumRepository);
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    private void populate(CrudRepository repository) {
-        Object entity = getEntityFromResource(sourceData);
-
-        if (entity instanceof Collection) {
-            for (Album album : (Collection<Album>) entity) {
-                if (album != null) {
-                    repository.save(album);
+            if (inputStream == null) {
+                throw new IllegalArgumentException("file not found! ");
+            } else {
+                if (super.count() == 0) {
+                    ObjectMapper mapper = new ObjectMapper();
+                    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+                    Album[] albums = mapper.readValue(inputStream, Album[].class);
+                    if(Objects.nonNull(albums) && albums.length != 0){
+                        for(Album album : albums){
+                            super.persist(album);
+                        }
+                    }
                 }
             }
-        } else {
-            repository.save(entity);
-        }
-    }
-
-    private Object getEntityFromResource(Resource resource) {
-        try {
-            return resourceReader.readFrom(resource, this.getClass().getClassLoader());
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            logger.error("error is {}", e);
         }
     }
 }

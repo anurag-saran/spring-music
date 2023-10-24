@@ -1,52 +1,12 @@
-spring:
-  jpa:
-    generate-ddl: true
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: "*"
-  endpoint:
-    health:
-      show-details: always
-
----
-spring:
-  config:
-    activate:
-      on-profile: http2
-
-server:
-  http2:
-    enabled: true
-
----
-spring:
-  config:
-    activate:
-      on-profile: mysql
+quarkus:
   datasource:
-    url: "jdbc:mysql://localhost/music"
-    driver-class-name: com.mysql.jdbc.Driver
-    username:
-    password:
-  jpa:
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.MySQL55Dialect
-
----
-spring:
-  config:
-    activate:
-      on-profile: postgres
-  datasource:
-    url: "jdbc:postgresql://localhost/music"
-    driver-class-name: org.postgresql.Driver
+    db-kind: postgresql
     username: postgres
-    password:
-  jpa:
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.ProgressDialect
+    password: root
+    jdbc:
+      url: jdbc:postgresql://localhost:5432/quarkus_music
+  hibernate-orm:
+    log:
+      sql: true
+    database:
+      generation: update

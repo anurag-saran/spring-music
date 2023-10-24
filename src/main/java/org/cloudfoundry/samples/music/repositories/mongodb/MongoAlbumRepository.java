@@ -1,5 +1,9 @@
 package org.cloudfoundry.samples.music.repositories.mongodb;
 
+// Hasn't been implemented
+
+
+/*
 import org.cloudfoundry.samples.music.domain.Album;
 import org.springframework.context.annotation.Profile;
 import org.springframework.data.mongodb.repository.MongoRepository;
@@ -9,3 +13,5 @@ import org.springframework.stereotype.Repository;
 @Profile("mongodb")
 public interface MongoAlbumRepository extends MongoRepository<Album, String> {
 }
+
+ */

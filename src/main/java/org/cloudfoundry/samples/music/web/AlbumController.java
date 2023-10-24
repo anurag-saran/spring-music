@@ -1,51 +1,73 @@
 package org.cloudfoundry.samples.music.web;
 
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.Response;
 import org.cloudfoundry.samples.music.domain.Album;
+import org.cloudfoundry.samples.music.repositories.jpa.JpaAlbumRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.repository.CrudRepository;
-import org.springframework.web.bind.annotation.*;
 
-import jakarta.validation.Valid;
+import java.util.List;
+import java.util.Objects;
 
-@RestController
-@RequestMapping(value = "/albums")
+@Path("albums")
+@ApplicationScoped
+@Produces("application/json")
+@Consumes("application/json")
 public class AlbumController {
     private static final Logger logger = LoggerFactory.getLogger(AlbumController.class);
-    private CrudRepository<Album, String> repository;
 
-    @Autowired
-    public AlbumController(CrudRepository<Album, String> repository) {
-        this.repository = repository;
-    }
+    @Inject
+    private JpaAlbumRepository repository;
 
-    @RequestMapping(method = RequestMethod.GET)
+    @GET
     public Iterable<Album> albums() {
-        return repository.findAll();
+        return repository.listAll();
     }
 
-    @RequestMapping(method = RequestMethod.PUT)
-    public Album add(@RequestBody @Valid Album album) {
+    @Transactional
+    @POST
+    public Album add(Album album) {
         logger.info("Adding album " + album.getId());
-        return repository.save(album);
+        return repository.getEntityManager().merge(album);
     }
 
-    @RequestMapping(method = RequestMethod.POST)
-    public Album update(@RequestBody @Valid Album album) {
+    @Transactional
+    @PUT
+    public Album update(Album album) {
         logger.info("Updating album " + album.getId());
-        return repository.save(album);
+        return repository.getEntityManager().merge(album);
     }
 
-    @RequestMapping(value = "/{id}", method = RequestMethod.GET)
-    public Album getById(@PathVariable String id) {
+    @GET
+    @Path("/{id}")
+    public Album getById(@PathParam("id") String id) {
         logger.info("Getting album " + id);
-        return repository.findById(id).orElse(null);
+        return repository.findByIdOptional(id).orElse(null);
     }
 
-    @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
-    public void deleteById(@PathVariable String id) {
+    @Transactional
+    @DELETE
+    @Path("/{id}")
+    public void deleteById(@PathParam("id") String id) {
         logger.info("Deleting album " + id);
         repository.deleteById(id);
+    }
+
+    @Transactional
+    @DELETE
+    @Path("deleteByArtist")
+    public Response deleteAlbumsByArtist(@QueryParam("artist") String artist){
+        logger.info("Inside @Class AlbumController @Method deleteAlbumsByArtist");
+        List<Album> albums = repository.find("artist",artist).list();
+        if(Objects.nonNull(albums) && !albums.isEmpty()){
+            albums.forEach(album -> repository.delete(album));
+        }
+        return Response
+                .status(Response.Status.OK)
+                .build();
     }
 }
