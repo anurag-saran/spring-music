@@ -1,6 +1,5 @@
 package org.cloudfoundry.samples.music.web;
 
-import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 
@@ -8,7 +7,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Path("/errors")
-@ApplicationScoped
 public class ErrorController {
 
     private List<int[]> junk = new ArrayList<>();

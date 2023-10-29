@@ -1,0 +1,12 @@
+quarkus:
+  datasource:
+    db-kind: postgresql
+    username: postgres
+    password: root
+    jdbc:
+      url: jdbc:postgresql://localhost:5432/quarkus_music
+  hibernate-orm:
+    log:
+      sql: true
+    database:
+      generation: update

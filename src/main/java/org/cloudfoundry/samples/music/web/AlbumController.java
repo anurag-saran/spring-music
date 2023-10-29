@@ -1,12 +1,13 @@
 package org.cloudfoundry.samples.music.web;
 
-import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Response;
 import org.cloudfoundry.samples.music.domain.Album;
 import org.cloudfoundry.samples.music.repositories.jpa.JpaAlbumRepository;
+import org.jboss.resteasy.reactive.RestPath;
+import org.jboss.resteasy.reactive.RestQuery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,14 +15,17 @@ import java.util.List;
 import java.util.Objects;
 
 @Path("albums")
-@ApplicationScoped
 @Produces("application/json")
 @Consumes("application/json")
 public class AlbumController {
     private static final Logger logger = LoggerFactory.getLogger(AlbumController.class);
 
+    private final JpaAlbumRepository repository;
+
     @Inject
-    private JpaAlbumRepository repository;
+    public AlbumController(JpaAlbumRepository albumRepository){
+        this.repository = albumRepository;
+    }
 
     @GET
     public Iterable<Album> albums() {
@@ -44,7 +48,7 @@ public class AlbumController {
 
     @GET
     @Path("/{id}")
-    public Album getById(@PathParam("id") String id) {
+    public Album getById(@RestPath("id") String id) {
         logger.info("Getting album " + id);
         return repository.findByIdOptional(id).orElse(null);
     }
@@ -52,7 +56,7 @@ public class AlbumController {
     @Transactional
     @DELETE
     @Path("/{id}")
-    public void deleteById(@PathParam("id") String id) {
+    public void deleteById(@RestPath("id") String id) {
         logger.info("Deleting album " + id);
         repository.deleteById(id);
     }
@@ -60,7 +64,7 @@ public class AlbumController {
     @Transactional
     @DELETE
     @Path("deleteByArtist")
-    public Response deleteAlbumsByArtist(@QueryParam("artist") String artist){
+    public Response deleteAlbumsByArtist(@RestQuery("artist") String artist){
         logger.info("Inside @Class AlbumController @Method deleteAlbumsByArtist");
         List<Album> albums = repository.find("artist",artist).list();
         if(Objects.nonNull(albums) && !albums.isEmpty()){
